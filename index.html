@@ -1,9 +1,14 @@
+Adicionei a **sonoplastia raiz do Ratinho** (com os clássicos *Uêpa*, *Rapaz*, *Pare* e *Ratinhooo*) e melhorei o **Efeito Jequiti**!
+Agora, o Jequiti não só pisca sozinho a cada 30 segundos, mas também tem 10% de chance de dar um "susto" bem rápido toda vez que alguém pedir uma nova dica!
+Substitua todo o seu arquivo index.html por este código abaixo. Quando você subir para o GitHub e rodar no Render, já vai estar com som e flashes.
+*(Dica: Lembre-se de não deixar o seu celular no mudo quando for jogar!)*
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Domingão do Boteco - Definitivo</title>
+    <title>Domingão do Boteco - Definitivo com Som</title>
     <style>
         /* === VARIÁVEIS E TEMA === */
         :root {
@@ -57,11 +62,11 @@
             box-shadow: 0 0 50px #000; overflow: hidden;
         }
 
-        /* JEQUITI FLASH */
+        /* JEQUITI FLASH - TELA CHEIA E BRANCA */
         #jequiti {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff url('https://upload.wikimedia.org/wikipedia/pt/thumb/d/d3/Jequiti_Logo.png/250px-Jequiti_Logo.png') no-repeat center;
-            background-size: contain; z-index: 9999; display: none;
+            background: #fff url('https://upload.wikimedia.org/wikipedia/pt/d/d3/Jequiti_Logo.png') no-repeat center;
+            background-size: contain; z-index: 99999; display: none;
         }
 
         .screen { display: none; flex-direction: column; height: 100%; padding: 20px; overflow-y: auto; padding-bottom: 80px; }
@@ -139,7 +144,6 @@
 
 <div id="app">
     
-    <!-- TELA 0: MENU PRINCIPAL -->
     <div id="screen-menu" class="screen active">
         <h1 class="neon-title" style="margin-top: 40px;">DOMINGÃO<br><span style="font-size: 24px; color: var(--neon-yellow);">do Boteco</span></h1>
         
@@ -150,10 +154,13 @@
         <button class="btn-primary" onclick="nav('mestre-setup')">Modo Mestre (Auditório)</button>
         <button class="btn-secondary" onclick="nav('turn-setup')">Modo Turnos (Passa-Passa)</button>
         <button class="btn-success btn-small" onclick="nav('card-manager')" style="margin-top: 15px;">Adicionar Cartas</button>
-        <button class="btn-warning btn-small" onclick="toggleTV()" id="tv-status">TV: Com Defeito</button>
+        
+        <div class="flex-row">
+            <button class="btn-warning btn-small" onclick="toggleTV()" id="tv-status">TV: Com Defeito</button>
+            <button class="btn-warning btn-small" onclick="testSound()" style="background: #e65100; color: white; border: none;">Testar Som (Uêpa!)</button>
+        </div>
     </div>
 
-    <!-- TELA MANAGER DE CARTAS -->
     <div id="screen-card-manager" class="screen">
         <h2 class="neon-subtitle">Criar Novas Cartas</h2>
         <p style="text-align: center; margin-bottom: 15px; font-size: 14px;">Estas cartas serão salvas no seu celular.</p>
@@ -176,7 +183,6 @@
         <button class="btn-warning" onclick="nav('menu')">Voltar ao Menu</button>
     </div>
 
-    <!-- TELA 1: SETUP MESTRE -->
     <div id="screen-mestre-setup" class="screen">
         <h2 class="neon-subtitle">Setup: Mestre</h2>
         <div class="setup-group">
@@ -195,7 +201,6 @@
         <button class="btn-warning" onclick="nav('menu')">Voltar</button>
     </div>
 
-    <!-- TELA 2: JOGO MESTRE -->
     <div id="screen-mestre-game" class="screen">
         <div class="placar-audit">
             <div class="placar-team"><h3 id="m-t1-name">Time A</h3><div class="placar-score" id="m-t1-score">0</div></div>
@@ -228,7 +233,6 @@
         </div>
     </div>
 
-    <!-- TELA 3: SETUP TURNOS -->
     <div id="screen-turn-setup" class="screen">
         <h2 class="neon-subtitle">Setup: Turnos</h2>
         <div class="setup-group">
@@ -249,7 +253,6 @@
         <button class="btn-warning" onclick="nav('menu')">Voltar</button>
     </div>
 
-    <!-- TELA 4: PASSA O CELULAR -->
     <div id="screen-turn-pass" class="screen" style="justify-content: center; align-items: center; text-align: center;">
         <h2 class="neon-title" style="font-size: 50px;">Atenção!</h2>
         <p style="font-size: 20px; margin-bottom: 30px;">Passe o celular para:</p>
@@ -257,7 +260,6 @@
         <button class="btn-success" onclick="turnReady()">Tô Pronto!</button>
     </div>
 
-    <!-- TELA 5: JOGO TURNOS -->
     <div id="screen-turn-game" class="screen">
         <div class="placar-audit" style="justify-content: space-around;">
             <div style="text-align: center;"><h3 style="color: var(--neon-blue);">Jogador</h3><div style="font-size: 20px; font-weight: bold;" id="t-curr-name">João</div></div>
@@ -295,7 +297,6 @@
         </div>
     </div>
 
-    <!-- TELA 6: COMANDA DE BAR (RESULTADO) -->
     <div id="screen-comanda" class="screen" style="align-items: center;">
         <h1 class="neon-title" style="font-size: 30px;">A CONTA, CHEFE!</h1>
         <div id="comanda-target" style="width: 100%; max-width: 400px;"></div>
@@ -307,6 +308,32 @@
 <div id="toast">🏆 Conquista Desbloqueada!</div>
 
 <script>
+    // ==========================================
+    // AUDIO / SONOPLASTIA (Sons clássicos do Ratinho/TV)
+    // ==========================================
+    const audioUrls = {
+        uepa: 'https://www.myinstants.com/media/sounds/uepa.mp3',
+        rapaz: 'https://www.myinstants.com/media/sounds/rapaz.mp3',
+        pare: 'https://www.myinstants.com/media/sounds/pare.mp3',
+        ratinho: 'https://www.myinstants.com/media/sounds/ratinhooo.mp3'
+    };
+
+    const sfx = {};
+    for(let key in audioUrls) {
+        sfx[key] = new Audio(audioUrls[key]);
+    }
+
+    function playSfx(name) {
+        try {
+            if(sfx[name]) {
+                sfx[name].currentTime = 0;
+                sfx[name].play().catch(() => console.log("O navegador bloqueou o áudio."));
+            }
+        } catch(e) {}
+    }
+
+    function testSound() { playSfx('uepa'); }
+
     // ==========================================
     // 125 CARTAS COMPACTADAS (Resposta|Categoria|Dica1...Dica10)
     // ==========================================
@@ -454,7 +481,7 @@
         loadSettings();
         parseDB();
         applyTV();
-        setInterval(jequitiFlash, 45000); // 45s chance
+        setInterval(jequitiFlashTimer, 30000); // 30s Jequiti aleatório no fundo
     }
 
     // ==========================================
@@ -515,12 +542,16 @@
         document.getElementById('tv-status').innerText = isTVOn ? "TV: Com Defeito" : "TV: 4K (Sem Filtro)";
     }
 
-    function jequitiFlash() {
-        if(isTVOn && Math.random() > 0.6) {
+    function triggerJequiti() {
+        if(isTVOn) {
             const j = document.getElementById('jequiti');
             j.style.display = 'block';
             setTimeout(() => j.style.display = 'none', 150);
         }
+    }
+
+    function jequitiFlashTimer() {
+        if(Math.random() > 0.5) triggerJequiti();
     }
 
     function getRandomItem(usedArr) {
@@ -605,6 +636,8 @@
     }
 
     function mestreNextHint() {
+        if(Math.random() > 0.9) triggerJequiti(); // 10% de chance de Jequiti na Dica
+        
         if(mState.hintIdx >= mState.currentItem.hints.length) return;
         const text = mState.currentItem.hints[mState.hintIdx];
         mState.hintIdx++;
@@ -622,15 +655,22 @@
 
     function mestreWin(teamNum) {
         clearInterval(globalTimer);
+        playSfx('uepa'); // Som de Vitória
+        
         const pts = calcPoints(mState.hintIdx);
         if(teamNum === 1) mState.t1.score += pts; else mState.t2.score += pts;
         updateMestreUI(); checkMestreVictory();
     }
 
-    function mestreNobody() { clearInterval(globalTimer); mestreSetupRound(); }
+    function mestreNobody() { 
+        clearInterval(globalTimer); 
+        playSfx('pare'); // Som de Ninguém Acertou
+        mestreSetupRound(); 
+    }
 
     function checkMestreVictory() {
         if(mState.t1.score >= mState.limit || mState.t2.score >= mState.limit) {
+            playSfx('ratinho'); // Som de Fim de Jogo!
             let win = mState.t1.score >= mState.limit ? mState.t1.name : mState.t2.name;
             generateComanda("AUDITÓRIO", [ { k: "Vencedor", v: win }, { k: "Pontos " + mState.t1.name, v: mState.t1.score }, { k: "Pontos " + mState.t2.name, v: mState.t2.score } ]);
         } else { mestreSetupRound(); }
@@ -697,6 +737,8 @@
     }
 
     function turnNextHint() {
+        if(Math.random() > 0.9) triggerJequiti(); // Jequiti Chance
+
         if(tState.hintIdx >= tState.currentItem.hints.length) return;
         const text = tState.currentItem.hints[tState.hintIdx]; tState.hintIdx++;
         
@@ -713,12 +755,14 @@
         const p = tState.players[tState.currentP];
 
         if(guess === normalize(tState.currentItem.answer)) {
+            playSfx('uepa'); // Acertou!
             const pts = calcPoints(tState.hintIdx);
             p.score += pts; p.streak++;
             if(p.streak === 3) showToast(`${p.name} FOGO NO RABO! (3 Acertos)`);
             if(tState.hintIdx <= 2) showToast(`GÊNIO DA BOLA! (Acertou rápido)`);
             turnEnd(true, pts);
         } else {
+            playSfx('rapaz'); // Errou!
             p.streak = 0; document.getElementById('t-curr-streak').innerText = "0🔥";
             const input = document.getElementById('t-guess-input');
             input.style.borderColor = 'red'; input.style.animation = 'shakeInput 0.3s';
@@ -727,7 +771,11 @@
     }
 
     document.getElementById('t-guess-input').addEventListener('keypress', function(e) { if(e.key === 'Enter') turnGuess(); });
-    function turnSkip() { tState.players[tState.currentP].streak = 0; turnEnd(false, 0); }
+    
+    function turnSkip() { 
+        playSfx('pare'); 
+        tState.players[tState.currentP].streak = 0; turnEnd(false, 0); 
+    }
 
     function turnEnd(won, pts) {
         clearInterval(globalTimer);
@@ -741,7 +789,7 @@
     function turnNextPlayer() {
         const p = tState.players[tState.currentP];
         if(p.score >= tState.limit) {
-            // Fim de jogo, monta comanda
+            playSfx('ratinho'); // Fim de Jogo
             let rows = tState.players.map(pl => ({ k: pl.name, v: pl.score + " pts" }));
             rows.unshift({ k: "GRANDE CAMPEÃO", v: p.name });
             generateComanda("VIRA-VIRA (Turnos)", rows);
@@ -752,7 +800,7 @@
     }
 
     // ==========================================
-    // COMANDA
+    // COMANDA FINAL
     // ==========================================
     function generateComanda(mode, dataRows) {
         nav('comanda');
@@ -766,3 +814,5 @@
 </script>
 </body>
 </html>
+
+```
